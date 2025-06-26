@@ -1,10 +1,10 @@
 /*
-forEach()
-Map()
-filter()
-reduce()
-some()
-every()
+forEach() returns void 
+Map()     returns array
+filter()  returns array
+reduce()  returns single element (can be number/string/object)
+some()    returns boolean
+every()   returns boolean
 */
 
 /*
