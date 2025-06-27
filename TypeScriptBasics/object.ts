@@ -55,3 +55,10 @@ console.log(product1.getInfo()); // Output: Learn JS costs 1000
 const product2 = new Product('Learn TypeScript', 1200);
 console.log(product2.getInfo()); // Output: Learn TypeScript costs 1200
 
+/* 
+Remember Below 2 Points.
+
+Class Body: Only contains property declarations, the constructor, and methods.
+Object Creation & Logging: Must be outside the class.
+*/
+
