@@ -41,3 +41,48 @@ const s2=  new Student(2,"RPST")
 
 s1.display()
 s2.display()
+
+// Constructor Overloading Example
+
+class Person {
+    name: string;
+    age: number;
+
+    // Overload signatures
+    constructor();
+    constructor(name: string, age: number);
+
+    // Single implementation
+    constructor(name?: string, age?: number) {
+        this.name = name ?? "Unknown";
+        this.age = age ?? 0;
+    }
+}
+
+const p1 = new Person();
+console.log(p1); // Person { name: 'Unknown', age: 0 }
+
+const p2 = new Person("Alice", 25);
+console.log(p2); // Person { name: 'Alice', age: 25 }
+
+// Method Overloading Example
+
+class Calculator {
+    // Overload signatures
+    add(a: number, b: number): number;
+    add(a: string, b: string): string;
+
+    // Single implementation
+    add(a: number | string, b: number | string): number | string {
+        return a as any + b as any;
+    }
+}
+
+const calc = new Calculator();
+console.log(calc.add(5, 10));        // 15
+console.log(calc.add("Hello, ", "World!")); // Hello, World!
+
+
+
+
+
