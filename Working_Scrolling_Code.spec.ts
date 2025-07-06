@@ -10,7 +10,7 @@ export const validateSelectedColumnVisible = async (selectedColumns: string[]) =
     let direction = 1; // 1 = right, -1 = left
 
     while (!found && tries < maxTries) {
-      const column = getHeadersInHistory(col);
+      const column = getHeadersInHistory(col); // individual header locator
 
       // Check if header is present and visible
       if (await column.count() > 0 && await column.first().isVisible()) {
