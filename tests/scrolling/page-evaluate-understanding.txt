@@ -1,0 +1,63 @@
+Here’s a clear summary of the various syntaxes you can use with page.evaluate() in Playwright, along with when and why you’d use each.
+
+1. No Arguments
+Use when:
+You don’t need to pass any data from your test script to the browser context.
+
+typescript
+await page.evaluate(() => {
+  // All logic and data are self-contained
+  document.body.style.background = 'red';
+});
+2. Single Argument
+Use when:
+You want to pass a single value (string, number, etc.) from your test script.
+
+typescript
+const selector = '.menu';
+await page.evaluate((sel) => {
+  document.querySelector(sel)?.scrollIntoView();
+}, selector);
+3. Multiple Arguments (Separate)
+Use when:
+You want to pass several independent values.
+
+typescript
+const selector = '.menu';
+const color = 'blue';
+await page.evaluate((sel, col) => {
+  const el = document.querySelector(sel);
+  if (el) el.style.background = col;
+}, selector, color);
+
+4. Array Destructuring
+Use when:
+You want to pass an array and unpack its values in the function.
+
+typescript
+const args = ['.menu', 100];
+await page.evaluate(([sel, scrollBy]) => {
+  const el = document.querySelector(sel);
+  if (el) el.scrollLeft += scrollBy;
+}, args);
+
+5. Object Destructuring
+Use when:
+You want to pass a single object with named properties for clarity.
+
+typescript
+const params = { selector: '.menu', color: 'green' };
+await page.evaluate(({ selector, color }) => {
+  const el = document.querySelector(selector);
+  if (el) el.style.background = color;
+}, params);
+
+6. Using Locators (Not page.evaluate, but related)
+Use when:
+You want to operate directly on a DOM element found by Playwright’s locator.
+
+typescript
+await page.locator('.menu').evaluate((menu) => {
+  menu.scrollLeft = menu.scrollWidth;
+});
+Here, menu is the DOM element matched by the locator.
