@@ -1,0 +1,5 @@
+email,password,validity
+user1@email.com,Password123,valid
+user2@email.com,WrongPass,invalid
+user3@email.com,TestPass456,valid
+demo@email.com,123456,invalid
