@@ -1,0 +1,179 @@
+What is Network Intercept?
+Network Intercept refers to the ability to capture, inspect, modify, mock, or block HTTP(S) network requests and responses between a web page and the server.
+
+Useful for:
+
+Testing and debugging APIs without depending on real backends.
+
+Mocking API responses to simulate various server behaviors.
+
+Modifying requests on the fly (e.g., change headers, payload).
+
+Controlling application flows or simulating error conditions.
+
+Playwright API for Network Intercept
+page.route(urlOrPattern, handler)
+Registers a route handler to intercept network requests matching a URL pattern (glob or regex).
+
+The handler is an async callback receiving a Route object and the intercepted Request.
+
+Key capabilities inside the route handler:
+
+route.continue([overrides]): Continue the request optionally modifying it.
+
+route.fulfill(responseOverrides): Respond with mock data without hitting the server.
+
+route.abort(): Cancel the request.
+
+Modifying Outgoing Requests
+Within the route handler, you can override request attributes when continuing the request:
+
+URL (same protocol only)
+
+HTTP method (GET, POST, PUT, DELETE, etc.)
+
+Headers (add/modify/remove)
+
+Post data (request payload/body)
+
+Example: Modify Headers, Method, URL and Post Data
+
+await page.route('**/api/submit', async (route, request) => {
+  const originalPostData = request.postData() || '';
+  let updatedPayload = originalPostData;
+
+  // Example: modify JSON body
+  try {
+    const json = JSON.parse(originalPostData);
+    json.modifiedBy = 'Playwright';
+    updatedPayload = JSON.stringify(json);
+  } catch {
+    // Not JSON, leave unchanged
+  }
+
+  const headers = {
+    ...request.headers(),
+    'X-Custom-Header': 'Interceptor',
+    'Authorization': 'Bearer new-token',  // override or add header
+  };
+
+  await route.continue({
+    method: 'POST',
+    headers,
+    postData: updatedPayload,
+    url: request.url() + '?intercepted=true',
+  });
+});
+Notes:
+
+To remove a header, set its value to undefined in JavaScript.
+
+request.postData() returns the original request body as a string or null if none.
+
+Only the original request is modified; redirects maintain original properties.
+
+Mocking Responses
+Use route.fulfill() to serve a mock response immediately.
+
+You can define status code, headers, content type, and body (JSON, HTML, etc.).
+
+Example: Mock API Response
+js
+await page.route('**/api/fruits', async (route) => {
+  const mockData = [
+    { name: "Apple", id: 1 },
+    { name: "Banana", id: 2 },
+    { name: "Cherry", id: 3 },
+  ];
+
+  await route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify(mockData),
+  });
+});
+Real-World End-to-End Example
+js
+const { chromium } = require('playwright');
+
+(async () => {
+  const browser = await chromium.launch();
+  const context = await browser.newContext();
+  const page = await context.newPage();
+
+  await page.route('**/api/submit', async (route, request) => {
+    if (request.method() === 'POST') {
+      const originalPayload = request.postData() || '';
+      let updatedPayload = originalPayload;
+
+      try {
+        const json = JSON.parse(originalPayload);
+        json.modifiedBy = 'Playwright';
+        updatedPayload = JSON.stringify(json);
+      } catch {}
+
+      const headers = {
+        ...request.headers(),
+        'X-Modified-By': 'Playwright',
+      };
+
+      await route.continue({
+        method: 'POST',
+        headers,
+        postData: updatedPayload,
+      });
+
+      console.log('Modified request sent:', updatedPayload);
+    } else {
+      await route.continue();
+    }
+  });
+
+  await page.goto('https://example.com/form');
+  await page.fill('#name', 'Alice');
+  await page.click('#submit');
+  
+  await browser.close();
+})();
+Why Network Intercept is Important
+Testing Isolation: Allows front-end testing without back-end dependency.
+
+Faster & Reliable Tests: Avoid flaky tests due to network instability.
+
+Edge Case Simulation: Easily simulate error codes, slow responses, or special payloads.
+
+Security Testing: Modify headers or payloads to test auth or policy enforcement.
+
+Cost Saving: Avoid hitting expensive or rate-limited APIs during testing.
+
+Tips for Using Playwright Network Intercept
+Keep route patterns as specific as possible to reduce overhead.
+
+Always call route.continue(), route.fulfill(), or route.abort() once per request.
+
+For complex payloads (form data or binary), manual handling may be required.
+
+Use route.fetch() for modifying responses.
+
+Use page.unroute() to remove route handlers if needed.
+
+Remember redirects use the original request’s properties unless handled separately.
+
+Interview Quick Points Summary
+What is network intercept in Playwright?
+Intercept and control HTTP requests and responses during browser automation.
+
+How do you intercept requests?
+Using page.route(urlPattern, handler).
+
+How to modify a request?
+Use route.continue({ headers, method, url, postData }).
+
+How to mock a response?
+Use route.fulfill({ status, headers, body }).
+
+How to abort a request?
+Use route.abort().
+
+Example use cases?
+API mocking, header manipulation, error simulation, payload modification. 
