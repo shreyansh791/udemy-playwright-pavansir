@@ -1,0 +1,53 @@
+while (scrollAttempts < maxScrollAttempts) {
+    // Get current scroll position
+    const currentScrollLeft = await virtualScroller.evaluate((element) => element.scrollLeft);
+
+    console.log("currentScrollLeft ", currentScrollLeft);
+    const columnHeaders = quoteNoTradeElements.columnHeaders();
+    const columnCount = await columnHeaders.count();
+
+    console.log(`Visible column headers in DOM: ${columnCount}`);
+
+    for (let i = 0; i < columnCount; i++) {
+      const header = columnHeaders.nth(i);
+
+      // Check if column is visible
+      const isVisible = await header.isVisible();
+      if (!isVisible) {
+        continue;
+      }
+
+      // Extract text from the MuiDataGrid-columnHeaderTitle div
+      const columnTitleElement = header.locator('.MuiDataGrid-columnHeaderTitle');
+      const columnName = await columnTitleElement.textContent();
+
+      if (columnName && columnName.trim() !== '' && !extractedColumnNames.has(columnName.trim())) {
+        extractedColumnNames.add(columnName.trim());
+        uiColumns.push(columnName.trim());
+      }
+    }
+
+    // Check if we can scroll further
+    const scrollInfo = await virtualScroller.evaluate((element) => ({
+      scrollLeft: element.scrollLeft,
+      scrollWidth: element.scrollWidth,
+      clientWidth: element.clientWidth,
+      canScrollMore: element.scrollLeft + element.clientWidth < element.scrollWidth
+    }));
+
+    console.log(`Scroll info: scrollLeft=${scrollInfo.scrollLeft}, scrollWidth=${scrollInfo.scrollWidth}, clientWidth=${scrollInfo.clientWidth}, canScrollMore=${scrollInfo.canScrollMore}`);
+
+    // If scroll position hasn't changed or we've reached the end, stop
+    if (currentScrollLeft === previousScrollLeft || !scrollInfo.canScrollMore) {
+      console.log('Reached end of horizontal scroll or scroll position unchanged. Stopping.');
+      break;
+    }
+
+    previousScrollLeft = currentScrollLeft;
+    await virtualScroller.evaluate((element) => {
+      element.scrollLeft += 200;
+    });
+    await wait(500); // Wait for new columns to render
+
+    scrollAttempts++;
+  }
