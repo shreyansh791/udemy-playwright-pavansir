@@ -1,0 +1,39 @@
+export async function dismissWalkMePopup() {
+  try {
+    const popupSelector = WALKME_POPUP_SELECTOR;
+    const overlayId = WALKME_OVERLAY_ID;
+
+    // Set up a MutationObserver that watches the DOM and dismisses WalkMe popup + overlay
+    await getPage().evaluate(
+      ({ popupSelector, overlayId }) => {
+        const observer = new MutationObserver(() => {
+          // Remove the WalkMe overlay that blocks pointer events
+          const overlay = document.getElementById(overlayId);
+          if (overlay) {
+            overlay.remove();
+          }
+          // Click the popup's cancel button (last occurrence)
+          const elements = document.querySelectorAll(popupSelector);
+          if (elements.length > 0) {
+            const cancelButton = elements[elements.length - 1] as HTMLElement;
+            cancelButton.click();
+          }
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+
+        // Also handle any existing elements right now
+        const overlay = document.getElementById(overlayId);
+        if (overlay) overlay.remove();
+        const existing = document.querySelectorAll(popupSelector);
+        if (existing.length > 0) {
+          (existing[existing.length - 1] as HTMLElement).click();
+        }
+      },
+      { popupSelector, overlayId }
+    );
+    console.log('MutationObserver registered to auto-dismiss WalkMe popup and overlay');
+    await wait(5000);
+  } catch {
+    console.log('Failed to set up WalkMe blocker, continuing');
+  }
+}
